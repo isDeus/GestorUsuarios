@@ -1,9 +1,8 @@
 package SistemaLogin;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Scanner;
 
 public class Login {
@@ -11,7 +10,7 @@ public class Login {
     private static Scanner sc;
     private static Scanner x;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         String username = "Bob69";
         String password = "123";
         String filepath = "D:\\Users\\Mauricio\\Desktop\\usuario.txt";
@@ -47,27 +46,72 @@ public class Login {
         }
     }
 
-    public static void crearUsuario(String id, String password, String filepath) {
-        try {
-            FileWriter fw = new FileWriter(filepath, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter pw = new PrintWriter(bw);
+    public static void crearUsuario(String id, String password) throws FileNotFoundException {
 
-            pw.println(id + "," + password);
-            pw.flush();
-            pw.close();
+        String destino = System.getProperty("user.home");
+        destino += File.separator + "SIVU";
+        destino += File.separator + "Usuario";
+        destino += File.separator + "usuario.txt";
 
-        } catch (Exception e) {
+        boolean estado = comprobarExistenciaUsuario(id);
 
+        if (estado = false) {
+            String contraseñaSegura = Seguridad.getMD5(password);
+            try {
+                FileWriter fw = new FileWriter(destino, true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter pw = new PrintWriter(bw);
+
+                pw.println(id + "," + contraseñaSegura);
+                pw.flush();
+                pw.close();
+
+            } catch (Exception e) {
+
+            }
         }
+        else{
+            System.out.println("El usuario ya se encuentra creado");
+        }
+
+    }
+
+    public static boolean comprobarExistenciaUsuario(String user) throws FileNotFoundException {
+
+        String destino = System.getProperty("user.home");
+        destino += File.separator + "SIVU";
+        destino += File.separator + "Usuario";
+        destino += File.separator + "usuario.txt";
+
+        String usuario = "";
+        String contraseña = "";
+        boolean estado = false;
+        x = new Scanner(new File(destino));
+        x.useDelimiter("[,\n]");
+
+        while (x.hasNext()) {
+            usuario = x.next();
+            contraseña = x.next();
+
+            if (usuario.equals(user)) {
+                estado = true;
+            } else {
+                estado = false;
+            }
+        }
+        x.close();
+        return estado;
     }
 
     public static void editarUsuario(String idEditar, String filepath, String password) {
         String tempFile = "temp.txt";
         File oldFile = new File(filepath);
         File newFile = new File(tempFile);
+
         String usuario = "";
         String contraseña = "";
+
+        String contraseñaSegura = Seguridad.getMD5(password);
 
         try {
             FileWriter fw = new FileWriter(tempFile, true);
@@ -82,7 +126,7 @@ public class Login {
                 contraseña = x.next();
 
                 if (usuario.equals(idEditar)) {
-                    pw.println(idEditar + "," + password);
+                    pw.println(idEditar + "," + contraseñaSegura);
                 } else {
                     pw.println(usuario + "," + contraseña);
                 }
@@ -135,10 +179,11 @@ public class Login {
         }
     }
 
-    public static void crearArchivoAdmin() {
+
+    public static void crearArchivoAdmin() throws IOException {
         String destino = System.getProperty("user.home");
         destino += File.separator + "SIVU";
-        destino += File.separator + "admin.txt";
+        destino += File.separator + "Admin";
         File customDir = new File(destino);
 
         if (customDir.exists()) {
@@ -148,5 +193,24 @@ public class Login {
         } else {
             System.out.println(customDir + " no fue creado");
         }
+        File file = new File(customDir, "admin.txt");
+        file.createNewFile();
+    }
+
+    public static void crearArchivoUsuario() throws IOException {
+        String destino = System.getProperty("user.home");
+        destino += File.separator + "SIVU";
+        destino += File.separator + "Usuario";
+        File customDir = new File(destino);
+
+        if (customDir.exists()) {
+            System.out.println(customDir + " ya existe");
+        } else if (customDir.mkdirs()) {
+            System.out.println(customDir + " fue creado");
+        } else {
+            System.out.println(customDir + " no fue creado");
+        }
+        File file = new File(customDir, "usuario.txt");
+        file.createNewFile();
     }
 }
